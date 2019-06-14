@@ -114,8 +114,11 @@ def neg_log_likelihood(y_true, y_pred, sigma=noise):
     return K.sum(-dist.log_prob(y_pred))
 
 model.compile(loss = neg_log_likelihood, optimizer = optimizers.Adam(lr=0.03), metrics = ['mse'])
-model.fit(X, y, batch_size=batch_size, epochs=1500, verbose=0)
+# model.fit(X, y, batch_size=batch_size, epochs=1500, verbose=0)
 
+for _ in tqdm.tqdm(range(2000)):
+    model.train_on_batch(X, y)
+    # print(_)
 
 X_test = np.linspace(-0.5, 0.5, 1000).reshape(-1, 1)
 y_pred_list = []
