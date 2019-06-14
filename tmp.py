@@ -28,6 +28,7 @@ X = np.linspace(-0.5, 0.5, train_size).reshape(-1, 1)
 y = f(X, sigma=noise)
 y_true = f(X, sigma=0.0)
 
+plt.figure()
 plt.scatter(X, y, marker='+', label='Training data')
 plt.plot(X, y_true, label='Truth')
 plt.title('Noisy training data and ground truth')
@@ -116,7 +117,7 @@ model.compile(loss = neg_log_likelihood, optimizer = optimizers.Adam(lr=0.03), m
 model.fit(X, y, batch_size=batch_size, epochs=1500, verbose=0)
 
 
-X_test = np.linspace(-1.5, 1.5, 1000).reshape(-1, 1)
+X_test = np.linspace(-0.5, 0.5, 1000).reshape(-1, 1)
 y_pred_list = []
 
 for i in tqdm.tqdm(range(500)):
@@ -129,6 +130,7 @@ y_preds = np.concatenate(y_pred_list, axis=1)
 y_mean = np.mean(y_preds, axis=1)
 y_sigma = np.std(y_preds, axis=1)
 
+plt.figure()
 plt.plot(X_test, y_mean, 'r-', label='Predictive mean')
 plt.scatter(X, y, marker='+', label='Training data')
 plt.fill_between(X_test.ravel(), 
