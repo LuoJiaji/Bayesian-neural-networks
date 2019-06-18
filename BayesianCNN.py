@@ -93,8 +93,9 @@ class DenseVariational(Layer):
 
 class MyLayer(Layer):
 
-    def __init__(self, output_dim,activation=None, **kwargs):
+    def __init__(self, output_dim, delta = 0.1,activation=None, **kwargs):
         self.output_dim = output_dim
+        self.delta  = delta 
         self.activation = activations.get(activation)
         super(MyLayer, self).__init__(**kwargs)
 
@@ -113,26 +114,26 @@ class MyLayer(Layer):
                                           initializer='uniform',
 #                                          initializer = initializers.normal(stddev=0.1),
                                           trainable=True)
-        # self.bias_rho = self.add_weight(name='bias_rho', 
-        #                                 shape=(self.output_dim,),
-        #                                 initializer='uniform',
-        #                                 trainable=True)
+        self.bias_rho = self.add_weight(name='bias_rho', 
+                                         shape=(self.output_dim,),
+                                         initializer='uniform',
+                                         trainable=True)
         
         super(MyLayer, self).build(input_shape)  # 一定要在最后调用它
 
     def call(self, x):
         kernel_sigma = tf.nn.softplus(self.kernel_rho)
-        kernel = self.kernel_mu + 0.5 * kernel_sigma * tf.random_normal(self.kernel_mu.get_shape())
+        kernel = self.kernel_mu + self.delta * kernel_sigma * tf.random_normal(self.kernel_mu.get_shape())
         
 #         kernel = self.kernel_mu 
         
 #        kernel = tf.random_normal([1], mean=self.kernel_mu, stddev=self.kernel_rho )
         
 #        print(kernel)
-        # bias_sigma = tf.nn.softplus(self.bias_rho)
-        # bias = self.bias_mu + 0.1*bias_sigma * tf.random_uniform(self.bias_mu.get_shape())
+        bias_sigma = tf.nn.softplus(self.bias_rho)
+        bias = self.bias_mu + self.delta * bias_sigma * tf.random_uniform(self.bias_mu.get_shape())
         
-        bias = self.bias_mu 
+#        bias = self.bias_mu 
         
         return self.activation(K.dot(x, kernel) + bias)
 
@@ -172,7 +173,7 @@ x = Dense(128, activation='relu', name='fc2')(x)
 # x = DenseVariational(10, kl_loss_weight=kl_loss_weight)(x)
 #x = MyLayer(128,activation='relu')(x)
 #x = MyLayer(128,activation='relu')(x)
-x = MyLayer(10,activation='softmax')(x)
+x = MyLayer(10, 0.5, activation='softmax')(x)
 #x = Dense(10, activation='softmax', name='fc_10')(x)
 model = Model(input_data, x)
 
