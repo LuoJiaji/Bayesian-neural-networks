@@ -1,8 +1,10 @@
+import cv2 
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.contrib import distributions
 from keras.datasets import mnist
+from keras.datasets import cifar10
 from keras.utils import np_utils
 from keras.layers import Input, Flatten, Dense, Dropout, Layer
 from keras.layers.convolutional import Conv2D
@@ -12,6 +14,7 @@ from keras.optimizers import RMSprop, SGD
 from keras import backend as K
 from keras import activations, initializers
 from keras import callbacks, optimizers
+from keras.preprocessing import image
 
 epochs = 30
 train_size = 32
@@ -168,11 +171,11 @@ x = MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
 x = Conv2D(32, (3, 3), activation='relu', padding='same', name='block1_conv2')(x)
 x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
 x = Flatten(name='flatten')(x)
-#x = Dense(128, activation='relu', name='fc1')(x)
+x = Dense(128, activation='relu', name='fc1')(x)
 #x = Dense(128, activation='relu', name='fc2')(x)
 # x = DenseVariational(10, kl_loss_weight=kl_loss_weight)(x)
 #x = MyLayer(128,activation='relu')(x)
-x = MyLayer(128, 0.1, activation='relu')(x)
+#x = MyLayer(128, 0.1, activation='relu')(x)
 x = MyLayer(128, 0.1, activation='relu')(x)
 x = MyLayer(10, 0.2, activation='softmax')(x)
 #x = Dense(10, activation='softmax', name='fc_10')(x)
@@ -182,7 +185,7 @@ model = Model(input_data, x)
 # model.compile(loss='categorical_crossentropy', optimizer=rms, metrics=['accuracy'])
 
 # model.compile(loss = neg_log_likelihood, optimizer = optimizers.Adam(lr=0.03), metrics = ['accuracy'])
-#model.compile(loss = kullback_leibler_divergence, optimizer = optimizers.SGD(lr = 0.1), metrics = ['accuracy'])
+#model.compile(loss = kullback_leibler_divergence, optimizer = optimizers.SGD(lr = 0.5), metrics = ['accuracy'])
 
 model.compile(loss = 'categorical_crossentropy', optimizer = optimizers.SGD(lr = 0.5), metrics = ['accuracy'])
 #model.compile(loss = 'categorical_crossentropy', optimizer = optimizers.SGD(), metrics = ['accuracy'])
@@ -195,13 +198,16 @@ model.summary()
 model.fit(x_train, y_train, epochs=20, batch_size=256)
 y_test = np.argmax(y_test, axis=1)
 
+ind = 3
+data = x_test[ind]
+data = np.expand_dims(data, axis=0)
 pre_cum = []
 pre_arg = []
 acc_cum = []
 
-for i in range(10):
+for i in range(100):
     print('\r','test iter:',i,end = '')
-    pre = model.predict(x_test)
+    pre = model.predict(data)
 #    pre_arg += [np.argmax(pre, axis=1)]
     pre_cum += [pre]
     pre = np.argmax(pre, axis=1)
@@ -209,6 +215,7 @@ for i in range(10):
     acc = np.mean(pre==y_test)
     acc_cum += [acc]
 print('\n')
+
 #y_test = np.argmax(y_test, axis=1)
 #acc = np.mean(pre==y_test)
 #print('accuracy:',acc)
@@ -217,19 +224,35 @@ print('\n')
 #noise = np.random.rand(28,28,1)
 #plt.imshow(noise,cmap='gray')
 #plt.show()
+pre_cum = np.array(pre_cum)
+all_prob = []
+#ind = 6
+plt.figure(1)
+plt.imshow(x_test[ind,:,:,0])
+plt.figure(2)
+for i in range(10):
+#    histo_exp = np.exp(pre_cum[:,0,i])
+#    prob = np.percentile(histo_exp, 50)
+    plt.subplot(1,10,i+1)
+    plt.hist(pre_cum[:,0,i])
+    prob = np.percentile(pre_cum[:,0,i], 20)
+    print('prob ',i, ':', prob)
+#    all_prob.append(prob)
 
 
-mean = np.random.rand(28,28)
-std = np.random.rand(28,28)
 
-img = np.random.rand(1,28,28,1)
+
+#mean = np.random.rand(28,28)
+#std = np.random.rand(28,28)
+
+img_rand = np.random.rand(1,28,28,1)
 rand_pre_cum = []
 rand_pre_arg = []
 radn_acc_cum = []
 
-for i in range(20):
+for i in range(100):
     print('\r','random iter:',i,end = '')
-    pre = model.predict(img)
+    pre = model.predict(img_rand)
 #    pre_arg += [np.argmax(pre, axis=1)]
     rand_pre_cum += [pre]
 #    pre = np.argmax(pre, axis=1)
@@ -237,3 +260,48 @@ for i in range(20):
 #    acc = np.mean(pre==y_test)
 #    acc_cum += [acc]
 print('\n')
+rand_pre_cum = np.array(rand_pre_cum)
+all_prob_rand = []
+
+plt.figure(1)
+plt.imshow(img_rand[0,:,:,0])
+plt.figure(2)
+for i in range(10):
+#    histo_exp = np.exp(pre_cum[:,0,i])
+#    prob = np.percentile(histo_exp, 50)
+    plt.subplot(1,10,i+1)
+    plt.hist(rand_pre_cum[:,0,i])
+    prob = np.percentile(rand_pre_cum[:,0,i], 50)
+    print('prob ',i, ':', prob)
+#    all_prob.append(prob)
+    
+# './img/A/SWNlY3ViZS50dGY=.png'    
+img = image.load_img('./img/alpha/A/SGVsdmV0aWNhTmV1ZUxULVVsdHJhTGlnQ29uZE9ibC5vdGY=.png', target_size=(28, 28))
+img = image.img_to_array(img)
+img = img/255
+img = img[:,:,0]
+#img = cv2.transpose(img)
+plt.figure(1)
+plt.imshow(img)
+
+pre_cum = []
+img = np.expand_dims(img, axis=0)
+img = np.expand_dims(img, axis=3)
+for i in range(100):
+    print('\r','random iter:',i,end = '')
+    pre = model.predict(img)
+#    pre_arg += [np.argmax(pre, axis=1)]
+    pre_cum += [pre]
+    
+pre_cum = np.array(pre_cum)
+
+plt.figure(2)
+for i in range(10):
+#    histo_exp = np.exp(pre_cum[:,0,i])
+#    prob = np.percentile(histo_exp, 50)
+    plt.subplot(1,10,i+1)
+    plt.hist(pre_cum[:,0,i])
+    prob = np.percentile(pre_cum[:,0,i], 20)
+    print('prob ',i, ':', prob)
+    
+
