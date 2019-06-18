@@ -4,12 +4,11 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.contrib import distributions
 from keras.datasets import mnist
-from keras.datasets import cifar10
 from keras.utils import np_utils
 from keras.layers import Input, Flatten, Dense, Dropout, Layer
 from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
-from keras.models import Model
+from keras.models import Model, load_model 
 from keras.optimizers import RMSprop, SGD
 from keras import backend as K
 from keras import activations, initializers
@@ -196,6 +195,10 @@ model.summary()
 
 # history=model.fit(x_train, y_train , epochs=10)
 model.fit(x_train, y_train, epochs=20, batch_size=256)
+
+#model.save('./model/BNN_better.h5')
+#model = load_model('./model/BNN_better.h5',custom_objects={'MyLayer': MyLayer})
+
 y_test = np.argmax(y_test, axis=1)
 
 ind = 3
@@ -281,7 +284,7 @@ img = image.img_to_array(img)
 img = img/255
 img = img[:,:,0]
 #img = cv2.transpose(img)
-plt.figure(1)
+plt.figure()
 plt.imshow(img)
 
 pre_cum = []
@@ -295,7 +298,7 @@ for i in range(100):
     
 pre_cum = np.array(pre_cum)
 
-plt.figure(2)
+plt.figure()
 for i in range(10):
 #    histo_exp = np.exp(pre_cum[:,0,i])
 #    prob = np.percentile(histo_exp, 50)
