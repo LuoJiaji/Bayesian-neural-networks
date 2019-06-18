@@ -122,7 +122,7 @@ class MyLayer(Layer):
 
     def call(self, x):
         kernel_sigma = tf.nn.softplus(self.kernel_rho)
-        kernel = self.kernel_mu + 0.1 * kernel_sigma * tf.random_normal(self.kernel_mu.get_shape())
+        kernel = self.kernel_mu + 0.5 * kernel_sigma * tf.random_normal(self.kernel_mu.get_shape())
         
 #         kernel = self.kernel_mu 
         
@@ -168,7 +168,7 @@ x = Conv2D(32, (3, 3), activation='relu', padding='same', name='block1_conv2')(x
 x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
 x = Flatten(name='flatten')(x)
 x = Dense(128, activation='relu', name='fc1')(x)
-#x = Dense(128, activation='relu', name='fc2')(x)
+x = Dense(128, activation='relu', name='fc2')(x)
 # x = DenseVariational(10, kl_loss_weight=kl_loss_weight)(x)
 #x = MyLayer(128,activation='relu')(x)
 #x = MyLayer(128,activation='relu')(x)
@@ -180,9 +180,9 @@ model = Model(input_data, x)
 # model.compile(loss='categorical_crossentropy', optimizer=rms, metrics=['accuracy'])
 
 # model.compile(loss = neg_log_likelihood, optimizer = optimizers.Adam(lr=0.03), metrics = ['accuracy'])
-model.compile(loss = kullback_leibler_divergence, optimizer = optimizers.SGD(lr = 0.003), metrics = ['accuracy'])
+#model.compile(loss = kullback_leibler_divergence, optimizer = optimizers.SGD(lr = 0.1), metrics = ['accuracy'])
 
-#model.compile(loss = 'categorical_crossentropy', optimizer = optimizers.Adam(lr=0.03), metrics = ['accuracy'])
+model.compile(loss = 'categorical_crossentropy', optimizer = optimizers.SGD(lr = 0.1), metrics = ['accuracy'])
 #model.compile(loss = 'categorical_crossentropy', optimizer = optimizers.SGD(), metrics = ['accuracy'])
 
 model.summary()
@@ -190,7 +190,7 @@ model.summary()
 # quit()
 
 # history=model.fit(x_train, y_train , epochs=10)
-model.fit(x_train, y_train, epochs=20, batch_size=128)
+model.fit(x_train, y_train, epochs=50, batch_size=256)
 y_test = np.argmax(y_test, axis=1)
 
 pre_cum = []
@@ -220,18 +220,18 @@ print('\n')
 mean = np.random.rand(28,28)
 std = np.random.rand(28,28)
 
-img = np.random.rand(10,28,28,1)
-pre_cum = []
-pre_arg = []
-acc_cum = []
+img = np.random.rand(1,28,28,1)
+rand_pre_cum = []
+rand_pre_arg = []
+radn_acc_cum = []
 
-for i in range(10):
-    print('\r','test iter:',i,end = '')
-    pre = model.predict(x_test)
+for i in range(20):
+    print('\r','random iter:',i,end = '')
+    pre = model.predict(img)
 #    pre_arg += [np.argmax(pre, axis=1)]
-    pre_cum += [pre]
-    pre = np.argmax(pre, axis=1)
-    pre_arg += [pre]
-    acc = np.mean(pre==y_test)
-    acc_cum += [acc]
+    rand_pre_cum += [pre]
+#    pre = np.argmax(pre, axis=1)
+#    pre_arg += [pre]
+#    acc = np.mean(pre==y_test)
+#    acc_cum += [acc]
 print('\n')
